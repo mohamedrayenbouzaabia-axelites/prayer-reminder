@@ -10,6 +10,8 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 
 - Shows the next prayer and remaining time in the status bar.
 - Shows today's full prayer schedule when you hover over the status bar item.
+- Lets you configure city, country, and calculation method from the tooltip or command palette.
+- Shows Dhuhr as Jumu'ah on Fridays.
 - Saves prayer times locally, so VS Code does not need to call the API every time it opens.
 - Loads a rolling 30 days of prayer times when an internet connection is available.
 - Refreshes the saved prayer times when fewer than 14 future days remain.
@@ -27,6 +29,7 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 ## Commands
 
 - `Prayer Reminder: Refresh`: Forces the extension to fetch and save fresh prayer times.
+- `Prayer Reminder: Configure Prayer Times`: Updates city, country, and calculation method, then refreshes saved prayer times.
 
 ## Release Notes
 
@@ -35,6 +38,8 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 - Added saved prayer-time cache across VS Code restarts.
 - Added rolling 30-day prayer time loading.
 - Added hover tooltip with today's prayer schedule.
+- Added quick configuration for city, country, and calculation method.
+- Shows Jumu'ah instead of Dhuhr on Fridays.
 - Fixed stale countdowns after VS Code stays open for a long time.
 - Fixed next-prayer display after the last prayer of the day.
 
@@ -60,7 +65,6 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 - Initial release.
 
 ## Developed By
-
 
 - [Omar AbdulRahman](https://omar45.com/)
 - [Mohamed Eldeeb](https://github.com/mosamadeeb)

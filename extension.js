@@ -13,6 +13,34 @@ const CACHE_KEY = 'prayerReminder.cache.v1';
 const CACHE_DAYS = 30;
 const REFRESH_THRESHOLD_DAYS = 14;
 const prayerOrder = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+const calculationMethods = [
+  { id: 0, name: 'Shia Ithna-Ashari, Leva Institute, Qum' },
+  { id: 1, name: 'University of Islamic Sciences, Karachi' },
+  { id: 2, name: 'Islamic Society of North America (ISNA)' },
+  { id: 3, name: 'Muslim World League' },
+  { id: 4, name: 'Umm Al-Qura University, Makkah' },
+  { id: 5, name: 'Egyptian General Authority of Survey' },
+  { id: 7, name: 'Institute of Geophysics, University of Tehran' },
+  { id: 8, name: 'Gulf Region' },
+  { id: 9, name: 'Kuwait' },
+  { id: 10, name: 'Qatar' },
+  { id: 11, name: 'Majlis Ugama Islam Singapura, Singapore' },
+  { id: 12, name: 'Union Organization Islamic de France' },
+  { id: 13, name: 'Diyanet Isleri Baskanligi, Turkey' },
+  { id: 14, name: 'Spiritual Administration of Muslims of Russia' },
+  { id: 15, name: 'Moonsighting Committee Worldwide' },
+  { id: 16, name: 'Dubai' },
+  { id: 17, name: 'Jabatan Kemajuan Islam Malaysia (JAKIM)' },
+  { id: 18, name: 'Tunisia' },
+  { id: 19, name: 'Algeria' },
+  { id: 20, name: 'Kementerian Agama Republik Indonesia' },
+  { id: 21, name: 'Morocco' },
+  { id: 22, name: 'Comunidade Islamica de Lisboa' },
+  {
+    id: 23,
+    name: 'Ministry of Awqaf, Islamic Affairs and Holy Places, Jordan',
+  },
+];
 
 const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 item.tooltip = 'Next prayer';
@@ -24,9 +52,18 @@ let k,
   isPrayerTime = false,
   updatePromise = null;
 
+const getConfigureTooltip = (message) => {
+  const tooltip = new vscode.MarkdownString(
+    `${message}\n\n[Configure prayer times](command:prayerReminder.configure)`
+  );
+  tooltip.isTrusted = true;
+
+  return tooltip;
+};
+
 const setLoadingText = () => {
   item.text = `\$(watch) Updating prayer times`;
-  item.tooltip = 'Updating prayer times';
+  item.tooltip = getConfigureTooltip('Updating prayer times.');
   item.backgroundColor = null;
 };
 
@@ -62,6 +99,20 @@ const parsePrayerDate = (dateKey, time) => {
   const [hour, minute] = time.split(':').map(Number);
 
   return new Date(year, month - 1, day, hour, minute);
+};
+
+const isFriday = (dateKey) => {
+  const [year, month, day] = dateKey.split('-').map(Number);
+
+  return new Date(year, month - 1, day).getDay() === 5;
+};
+
+const getDisplayPrayerName = (prayer, dateKey) => {
+  if (prayer === 'Dhuhr' && isFriday(dateKey)) {
+    return "Jumu'ah";
+  }
+
+  return prayer;
 };
 
 const getCalendar = async (date, settings) => {
@@ -202,6 +253,7 @@ const loadTimingsFromCache = (cache, now = new Date()) => {
       if (prayerTime > now) {
         timings.set(`${dateKey}:${prayer}`, {
           name: prayer,
+          displayName: getDisplayPrayerName(prayer, dateKey),
           dateKey,
           time: dayTimings[prayer],
           date: prayerTime,
@@ -250,7 +302,9 @@ const updateTooltip = (nextPrayerName, hours, minutes) => {
   if (todayTimings) {
     for (const prayer of prayerOrder) {
       if (todayTimings[prayer]) {
-        tooltip.appendMarkdown(`- **${prayer}**: ${todayTimings[prayer]}\n`);
+        tooltip.appendMarkdown(
+          `- **${getDisplayPrayerName(prayer, todayKey)}**: ${todayTimings[prayer]}\n`
+        );
       }
     }
   } else {
@@ -261,11 +315,77 @@ const updateTooltip = (nextPrayerName, hours, minutes) => {
     tooltip.appendMarkdown(`\nNext: **${nextPrayerName}** in ${hours}h ${minutes}m`);
   }
 
+  tooltip.appendMarkdown(
+    '\n\n[Configure prayer times](command:prayerReminder.configure)'
+  );
+  tooltip.isTrusted = true;
+
   item.tooltip = tooltip;
 };
 
+const refreshAfterConfigChange = async () => {
+  const updated = await updateMaps(true);
+  await updateText();
+
+  if (updated) {
+    vscode.window.showInformationMessage('Prayer Reminder: Settings updated');
+  }
+};
+
+const configurePrayerTimes = async () => {
+  const config = vscode.workspace.getConfiguration('prayerReminder');
+  const settings = getSettings();
+
+  const city = await vscode.window.showInputBox({
+    title: 'Prayer Reminder: City',
+    prompt: 'Enter the city used to calculate prayer times.',
+    value: settings.city,
+    ignoreFocusOut: true,
+  });
+
+  if (!city) return;
+
+  const country = await vscode.window.showInputBox({
+    title: 'Prayer Reminder: Country',
+    prompt: 'Enter the country used to calculate prayer times.',
+    value: settings.country,
+    ignoreFocusOut: true,
+  });
+
+  if (!country) return;
+
+  const method = await vscode.window.showQuickPick(
+    calculationMethods.map((calculationMethod) => ({
+      label: `${calculationMethod.id} - ${calculationMethod.name}`,
+      description:
+        calculationMethod.id === settings.method ? 'Current method' : undefined,
+      methodId: calculationMethod.id,
+    })),
+    {
+      title: 'Prayer Reminder: Calculation Method',
+      placeHolder: 'Select the calculation method for your location.',
+      ignoreFocusOut: true,
+    }
+  );
+
+  if (!method) return;
+
+  await config.update('city', city.trim(), vscode.ConfigurationTarget.Global);
+  await config.update('country', country.trim(), vscode.ConfigurationTarget.Global);
+  await config.update(
+    'method',
+    method.methodId,
+    vscode.ConfigurationTarget.Global
+  );
+  await refreshAfterConfigChange();
+};
+
 const updateMaps = async (forceRefresh = false) => {
-  if (updatePromise) return updatePromise;
+  if (updatePromise) {
+    if (!forceRefresh) return updatePromise;
+
+    await updatePromise;
+  }
 
   updatePromise = (async () => {
     until.clear();
@@ -315,7 +435,7 @@ const updateText = async () => {
   // get the next prayer's name
   k = until.keys().next().value;
   const nextPrayer = timings.get(k);
-  const nextPrayerName = nextPrayer.name;
+  const nextPrayerName = nextPrayer.displayName;
 
   // convert the time left to hours:minutes
   const timeLeft = until.get(k);
@@ -395,8 +515,12 @@ async function activate(context) {
       }
     }
   );
+  const configure = vscode.commands.registerCommand(
+    'prayerReminder.configure',
+    configurePrayerTimes
+  );
 
-  context.subscriptions.push(refresh, {
+  context.subscriptions.push(refresh, configure, {
     dispose: () => clearInterval(interval),
   });
 }
