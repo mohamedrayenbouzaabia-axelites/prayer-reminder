@@ -4,7 +4,7 @@
 
 Prayer Times is an extension aimed to help you remember your prayers by showing you the remaining time till the upcoming prayer in the status bar
 
-![Screenshot-02](https://i.imgur.com/gsQ8laA.png)
+![Screenshot-02](/image.png)
 
 ## Extension Settings
 
