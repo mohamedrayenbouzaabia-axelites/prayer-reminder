@@ -3,7 +3,7 @@
   "displayName": "Prayer Reminder",
   "publisher": "OmarAbdulRahman",
   "description": "An extension that reminds you to never forget your prayers",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "icon": "pray.png",
   "repository": {
     "type": "git",
@@ -28,6 +28,10 @@
       {
         "command": "prayerReminder.configure",
         "title": "Prayer Reminder: Configure Prayer Times"
+      },
+      {
+        "command": "prayerReminder.detectLocation",
+        "title": "Prayer Reminder: Detect Location"
       }
     ],
     "configuration": [

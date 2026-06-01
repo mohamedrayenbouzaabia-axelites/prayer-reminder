@@ -10,6 +10,7 @@ const until = new Map(),
   timings = new Map();
 
 const CACHE_KEY = 'prayerReminder.cache.v1';
+const LOCATION_DETECTED_KEY = 'prayerReminder.locationDetected.v1';
 const CACHE_DAYS = 30;
 const REFRESH_THRESHOLD_DAYS = 14;
 const prayerOrder = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -41,6 +42,25 @@ const calculationMethods = [
     name: 'Ministry of Awqaf, Islamic Affairs and Holy Places, Jordan',
   },
 ];
+const methodByCountry = new Map([
+  ['Algeria', 19],
+  ['Canada', 2],
+  ['Egypt', 5],
+  ['France', 12],
+  ['Indonesia', 20],
+  ['Jordan', 23],
+  ['Kuwait', 9],
+  ['Malaysia', 17],
+  ['Morocco', 21],
+  ['Qatar', 10],
+  ['Russia', 14],
+  ['Saudi Arabia', 4],
+  ['Singapore', 11],
+  ['Tunisia', 18],
+  ['Turkey', 13],
+  ['United Arab Emirates', 16],
+  ['United States', 2],
+]);
 
 const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 item.tooltip = 'Next prayer';
@@ -54,7 +74,7 @@ let k,
 
 const getConfigureTooltip = (message) => {
   const tooltip = new vscode.MarkdownString(
-    `${message}\n\n[Configure prayer times](command:prayerReminder.configure)`
+    `${message}\n\n[Configure prayer times](command:prayerReminder.configure) | [Detect location](command:prayerReminder.detectLocation)`
   );
   tooltip.isTrusted = true;
 
@@ -76,6 +96,23 @@ const getSettings = () => {
     method: config.get('method'),
   };
 };
+
+const hasConfiguredLocation = () => {
+  const config = vscode.workspace.getConfiguration('prayerReminder');
+  const city = config.inspect('city');
+  const country = config.inspect('country');
+
+  return Boolean(
+    city.globalValue ||
+      city.workspaceValue ||
+      city.workspaceFolderValue ||
+      country.globalValue ||
+      country.workspaceValue ||
+      country.workspaceFolderValue
+  );
+};
+
+const getDetectedMethod = (country) => methodByCountry.get(country) || 3;
 
 const getDateKey = (date) => {
   const year = date.getFullYear();
@@ -292,6 +329,49 @@ const showFetchError = () => {
     });
 };
 
+const detectLocation = async () => {
+  const res = await axios.get('https://ipapi.co/json/', {
+    headers: { 'User-Agent': 'prayer-reminder-vscode' },
+    timeout: 5000,
+  });
+  const { city, country_name: country } = res.data;
+
+  if (!city || !country) {
+    throw new Error('Location detection did not return a city and country.');
+  }
+
+  return {
+    city,
+    country,
+    method: getDetectedMethod(country),
+  };
+};
+
+const applyDetectedLocation = async (location) => {
+  const config = vscode.workspace.getConfiguration('prayerReminder');
+
+  await config.update('city', location.city, vscode.ConfigurationTarget.Global);
+  await config.update('country', location.country, vscode.ConfigurationTarget.Global);
+  await config.update('method', location.method, vscode.ConfigurationTarget.Global);
+
+  if (extensionContext) {
+    await extensionContext.globalState.update(LOCATION_DETECTED_KEY, true);
+  }
+};
+
+const autoDetectLocation = async () => {
+  if (hasConfiguredLocation()) return false;
+
+  try {
+    const location = await detectLocation();
+    await applyDetectedLocation(location);
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
 const updateTooltip = (nextPrayerName, hours, minutes) => {
   const todayKey = getDateKey(new Date());
   const todayTimings = prayerCache && prayerCache.days && prayerCache.days[todayKey];
@@ -316,7 +396,7 @@ const updateTooltip = (nextPrayerName, hours, minutes) => {
   }
 
   tooltip.appendMarkdown(
-    '\n\n[Configure prayer times](command:prayerReminder.configure)'
+    '\n\n[Configure prayer times](command:prayerReminder.configure) | [Detect location](command:prayerReminder.detectLocation)'
   );
   tooltip.isTrusted = true;
 
@@ -329,6 +409,28 @@ const refreshAfterConfigChange = async () => {
 
   if (updated) {
     vscode.window.showInformationMessage('Prayer Reminder: Settings updated');
+  }
+};
+
+const detectLocationAndRefresh = async () => {
+  try {
+    setLoadingText();
+
+    const location = await detectLocation();
+    await applyDetectedLocation(location);
+    const updated = await updateMaps(true);
+    await updateText();
+
+    if (updated) {
+      vscode.window.showInformationMessage(
+        `Prayer Reminder: Location set to ${location.city}, ${location.country}`
+      );
+    }
+  } catch (error) {
+    vscode.window.showWarningMessage(
+      'Prayer Reminder: Could not detect your location. Please configure it manually.'
+    );
+    await configurePrayerTimes();
   }
 };
 
@@ -493,7 +595,7 @@ const updateText = async () => {
 async function activate(context) {
   extensionContext = context;
 
-  updateMaps().then(() => {
+  autoDetectLocation().then(() => updateMaps()).then(() => {
     updateText();
   });
 
@@ -519,8 +621,12 @@ async function activate(context) {
     'prayerReminder.configure',
     configurePrayerTimes
   );
+  const detect = vscode.commands.registerCommand(
+    'prayerReminder.detectLocation',
+    detectLocationAndRefresh
+  );
 
-  context.subscriptions.push(refresh, configure, {
+  context.subscriptions.push(refresh, configure, detect, {
     dispose: () => clearInterval(interval),
   });
 }

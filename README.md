@@ -11,6 +11,8 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 - Shows the next prayer and remaining time in the status bar.
 - Shows today's full prayer schedule when you hover over the status bar item.
 - Lets you configure city, country, and calculation method from the tooltip or command palette.
+- Auto-detects city and country on first setup when no location has been configured.
+- Lets you re-detect location from the tooltip or command palette.
 - Shows Dhuhr as Jumu'ah on Fridays.
 - Saves prayer times locally, so VS Code does not need to call the API every time it opens.
 - Loads a rolling 30 days of prayer times when an internet connection is available.
@@ -30,8 +32,15 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 
 - `Prayer Reminder: Refresh`: Forces the extension to fetch and save fresh prayer times.
 - `Prayer Reminder: Configure Prayer Times`: Updates city, country, and calculation method, then refreshes saved prayer times.
+- `Prayer Reminder: Detect Location`: Detects city and country from your IP address, then refreshes saved prayer times.
 
 ## Release Notes
+
+## 1.0.6
+
+- Added IP-based location detection for first setup.
+- Added `Detect Location` command and tooltip action.
+- Auto-saves detected city, country, and a matching calculation method when possible.
 
 ## 1.0.5
 
@@ -73,3 +82,15 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 ## Support
 
 For bugs or issues, please contact contact@omar45.com.
+for building the project follow this steps:
+```
+npm install
+npm install -g @vscode/vsce
+vsce package
+```
+That will generate something like:
+> prayer-reminder-1.0.x.vsix
+Then you can install it in VS Code:
+```
+code --install-extension prayer-reminder-1.0.x.vsix
+```
