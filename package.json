@@ -3,7 +3,7 @@
   "displayName": "Prayer Reminder",
   "publisher": "OmarAbdulRahman",
   "description": "An extension that reminds you to never forget your prayers",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "icon": "pray.png",
   "repository": {
     "type": "git",
@@ -32,6 +32,14 @@
       {
         "command": "prayerReminder.detectLocation",
         "title": "Prayer Reminder: Detect Location"
+      },
+      {
+        "command": "prayerReminder.openAdhkarSabah",
+        "title": "Prayer Reminder: Morning Adhkar (أذكار الصباح)"
+      },
+      {
+        "command": "prayerReminder.openAdhkarMasa",
+        "title": "Prayer Reminder: Evening Adhkar (أذكار المساء)"
       }
     ],
     "configuration": [
@@ -99,6 +107,16 @@
               "Ministry of Awqaf, Islamic Affairs and Holy Places, Jordan"
             ],
             "default": 5
+          },
+          "prayerReminder.adhkarSabah": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show Morning Adhkar (أذكار الصباح) reminder after Fajr prayer"
+          },
+          "prayerReminder.adhkarMasa": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show Evening Adhkar (أذكار المساء) reminder after Asr prayer"
           }
         }
       }
