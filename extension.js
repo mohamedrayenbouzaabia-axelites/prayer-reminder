@@ -56,7 +56,7 @@ const methodByCountry = new Map([
   ['Russia', 14],
   ['Saudi Arabia', 4],
   ['Singapore', 11],
-  ['Tunisia', 18],
+  ['Tunisia', 17],
   ['Turkey', 13],
   ['United Arab Emirates', 16],
   ['United States', 2],
@@ -330,13 +330,12 @@ const showFetchError = () => {
 };
 
 const detectLocation = async () => {
-  const res = await axios.get('https://ipapi.co/json/', {
-    headers: { 'User-Agent': 'prayer-reminder-vscode' },
+  const res = await axios.get('http://ip-api.com/json/', {
     timeout: 5000,
   });
-  const { city, country_name: country } = res.data;
+  const { status, city, country } = res.data;
 
-  if (!city || !country) {
+  if (status !== 'success' || !city || !country) {
     throw new Error('Location detection did not return a city and country.');
   }
 
