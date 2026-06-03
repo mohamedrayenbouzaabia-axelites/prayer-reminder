@@ -24,7 +24,11 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 - Falls back to saved prayer times if the API cannot be reached.
 - Handles the end of the day by moving to tomorrow's Fajr instead of showing `undefined` or `NaN`.
 
-![Screenshot-02](/image.png)
+![Daily prayer table](./images/screenshot-1.png)
+
+![Adhkar](./images/screenshot-2.png)
+
+
 
 ## Extension Settings
 
