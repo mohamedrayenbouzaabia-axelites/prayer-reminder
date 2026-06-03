@@ -53,6 +53,7 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 - Added `adhkarSabah` and `adhkarMasa` settings to enable/disable each adhkar reminder.
 - Added unique notification messages with Quranic verses and hadith for each prayer (Fajr, Dhuhr, Asr, Maghrib, Isha).
 - Switched location detection API from `ipapi.co` to `ip-api.com` for improved accuracy.
+- Refactored codebase into modular `src/` structure for maintainability.
 
 ## 1.0.6
 
