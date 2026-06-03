@@ -585,7 +585,7 @@ const updateTooltip = (nextPrayerName, hours, minutes) => {
       : 'أذكار المساء (Evening Adhkar)';
 
   tooltip.appendMarkdown(
-    `\n\n[${adhkarLabel}](command:${adhkarCommand}) \n [Configure prayer times](command:prayerReminder.configure) | [Detect location](command:prayerReminder.detectLocation)`
+    `\n\n[${adhkarLabel}](command:${adhkarCommand}) \n\n[Configure prayer times](command:prayerReminder.configure) | [Detect location](command:prayerReminder.detectLocation)`
   );
   tooltip.isTrusted = true;
 

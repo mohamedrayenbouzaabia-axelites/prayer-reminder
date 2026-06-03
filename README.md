@@ -10,6 +10,10 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 
 - Shows the next prayer and remaining time in the status bar.
 - Shows today's full prayer schedule when you hover over the status bar item.
+- Per-prayer notification messages with relevant Quranic verses and hadith.
+- Morning Adhkar (أذكار الصباح) reminder after Fajr prayer with a read-only webview panel containing the full adhkar.
+- Evening Adhkar (أذكار المساء) reminder after Asr prayer with a read-only webview panel containing the full adhkar.
+- Quick-access adhkar button in the tooltip — Morning Adhkar before noon, Evening Adhkar after noon.
 - Lets you configure city, country, and calculation method from the tooltip or command palette.
 - Auto-detects city and country on first setup when no location has been configured.
 - Lets you re-detect location from the tooltip or command palette.
@@ -27,14 +31,28 @@ The extension shows the remaining time until the upcoming prayer, reminds you wh
 - `prayerReminder.city`: City name, for example `Cairo`.
 - `prayerReminder.country`: Country name, for example `Egypt`.
 - `prayerReminder.method`: Prayer time calculation method. See [Aladhan calculation methods](https://aladhan.com/calculation-methods).
+- `prayerReminder.adhkarSabah`: Show Morning Adhkar (أذكار الصباح) reminder after Fajr prayer. Enabled by default.
+- `prayerReminder.adhkarMasa`: Show Evening Adhkar (أذكار المساء) reminder after Asr prayer. Enabled by default.
 
 ## Commands
 
 - `Prayer Reminder: Refresh`: Forces the extension to fetch and save fresh prayer times.
 - `Prayer Reminder: Configure Prayer Times`: Updates city, country, and calculation method, then refreshes saved prayer times.
 - `Prayer Reminder: Detect Location`: Detects city and country from your IP address, then refreshes saved prayer times.
+- `Prayer Reminder: Morning Adhkar (أذكار الصباح)`: Opens a read-only panel with the full Morning Adhkar.
+- `Prayer Reminder: Evening Adhkar (أذكار المساء)`: Opens a read-only panel with the full Evening Adhkar.
 
 ## Release Notes
+
+## 1.0.7
+
+- Added Morning Adhkar (أذكار الصباح) reminder after Fajr prayer.
+- Added Evening Adhkar (أذكار المساء) reminder after Asr prayer.
+- Added read-only webview panels with full adhkar text for morning and evening.
+- Added quick-access adhkar button in the tooltip (morning before noon, evening after noon).
+- Added `adhkarSabah` and `adhkarMasa` settings to enable/disable each adhkar reminder.
+- Added unique notification messages with Quranic verses and hadith for each prayer (Fajr, Dhuhr, Asr, Maghrib, Isha).
+- Switched location detection API from `ipapi.co` to `ip-api.com` for improved accuracy.
 
 ## 1.0.6
 
